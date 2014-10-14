@@ -1,0 +1,31 @@
+{
+  "name": "swagger-suite-ui",
+  "version": "0.0.1",
+  "description": "A build of Swagger-UI specifically for Swagger-Suite",
+  "keywords": [
+    "rest",
+    "json",
+    "api",
+    "spec",
+    "specification",
+    "contract",
+    "schema",
+    "swagger"
+  ],
+  "main": "dist/index.html",
+  "license": "Apache 2.0",
+  "homepage": "https://github.com/wordnik/swagger-ui",
+  "ignore": [
+    "*.*",
+    "Cakefile",
+    "bin",
+    "lib",
+    "src",
+    "!dist",
+    "!bower.json",
+    "!LICENSE",
+    "!README.md"
+  ],
+  "dependencies": {
+  }
+}
