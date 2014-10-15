@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-ui",
-  "version": "2.1.0-alpha.1",
+  "version": "2.1.1",
   "description": "A build of Swagger-UI specifically for Swagger-Suite",
   "keywords": [
     "rest",
@@ -16,8 +16,6 @@
   "license": "Apache 2.0",
   "homepage": "https://github.com/wordnik/swagger-ui",
   "ignore": [
-    "*.*",
-    "Cakefile",
     "bin",
     "lib",
     "src",
