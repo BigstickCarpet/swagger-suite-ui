@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-ui",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A build of Swagger-UI specifically for Swagger-Suite",
   "keywords": [
     "rest",
@@ -16,13 +16,15 @@
   "license": "Apache 2.0",
   "homepage": "https://github.com/wordnik/swagger-ui",
   "ignore": [
-    "bin",
-    "lib",
-    "src",
-    "!dist",
-    "!bower.json",
-    "!LICENSE",
-    "!README.md"
+    "/.*"
+    "/*.*"
+    "/bin",
+    "/lib",
+    "/src",
+    "!/dist",
+    "!/bower.json",
+    "!/LICENSE",
+    "!/README.md"
   ],
   "dependencies": {
   }
