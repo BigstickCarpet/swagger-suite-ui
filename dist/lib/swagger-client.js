@@ -622,10 +622,12 @@ Operation.prototype.getType = function (param) {
   var format = param.format;
   var isArray = false;
   var str;
-  if(type === 'integer' && format === 'int32')
+  if(type === 'integer' && format === 'int32' )
     str = 'integer';
   else if(type === 'integer' && format === 'int64')
     str = 'long';
+  else if (type === 'integer')
+    str = 'integer';
   else if(type === 'string' && format === 'date-time')
     str = 'date-time';
   else if(type === 'string' && format === 'date')
@@ -634,6 +636,8 @@ Operation.prototype.getType = function (param) {
     str = 'float';
   else if(type === 'number' && format === 'double')
     str = 'double';
+  else if (type === 'number')
+    str = 'number'
   else if(type === 'boolean')
     str = 'boolean';
   else if(type === 'string')
@@ -657,7 +661,7 @@ Operation.prototype.getType = function (param) {
         return ref;
     }
     else
-      return this.getType(schema);
+      return this.getType(schema) || 'object';
   }
   if(isArray)
     return [ str ];
