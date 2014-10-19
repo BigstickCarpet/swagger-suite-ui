@@ -1,5 +1,5 @@
 // swagger-client.js
-// version 2.1.0-alpha.1
+// version 2.1.0-alpha.2
 /**
  * Array Model
  **/
@@ -375,7 +375,8 @@ SwaggerClient.prototype.buildFromSpec = function(response) {
   this.info = response.info || {};
   this.title = response.title || '';
   this.host = response.host || '';
-  this.schemes = response.schemes || [ 'http' ];
+  this.schemes = response.schemes || [];
+  this.scheme;
   this.basePath = response.basePath || '';
   this.apis = {};
   this.apisArray = [];
@@ -383,9 +384,19 @@ SwaggerClient.prototype.buildFromSpec = function(response) {
   this.produces = response.produces;
   this.authSchemes = response.authorizations;
 
+  var location = this.parseUri(this.url);
+  if(typeof this.schemes === 'undefined' || this.schemes.length === 0) {
+    this.scheme = location.scheme;
+  }
+  else {
+    this.scheme = this.schemes[0];
+  }
+
   if(typeof this.host === 'undefined' || this.host === '') {
-    var location = this.parseUri(this.url);
     this.host = location.host;
+    if (location.port) {
+      this.host = this.host + ':' + location.port;
+    }
   }
 
   this.definitions = response.definitions;
@@ -466,6 +477,7 @@ SwaggerClient.prototype.parseUri = function(uri) {
   return {
     scheme: parts[4].replace(':',''),
     host: parts[11],
+    port: parts[12],
     path: parts[15]
   };
 }
@@ -516,6 +528,7 @@ var Operation = function(parent, operationId, httpMethod, path, args, definition
   this.parent = parent;
   this.host = parent.host;
   this.schemes = parent.schemes;
+  this.scheme = parent.scheme || 'http';
   this.basePath = parent.basePath;
   this.nickname = (operationId||errors.push('Operations must have a nickname.'));
   this.method = (httpMethod||errors.push('Operation ' + operationId + ' is missing method.'));
@@ -627,12 +640,12 @@ Operation.prototype.getType = function (param) {
   var format = param.format;
   var isArray = false;
   var str;
-  if(type === 'integer' && format === 'int32' )
+  if(type === 'integer' && format === 'int32')
     str = 'integer';
   else if(type === 'integer' && format === 'int64')
     str = 'long';
-  else if (type === 'integer')
-    str = 'integer';
+  else if(type === 'integer' && typeof format === 'undefined')
+    str = 'long';
   else if(type === 'string' && format === 'date-time')
     str = 'date-time';
   else if(type === 'string' && format === 'date')
@@ -641,8 +654,8 @@ Operation.prototype.getType = function (param) {
     str = 'float';
   else if(type === 'number' && format === 'double')
     str = 'double';
-  else if (type === 'number')
-    str = 'number'
+  else if(type === 'number' && typeof format === 'undefined')
+    str = 'double';
   else if(type === 'boolean')
     str = 'boolean';
   else if(type === 'string')
@@ -666,7 +679,7 @@ Operation.prototype.getType = function (param) {
         return ref;
     }
     else
-      return this.getType(schema) || 'object';
+      return this.getType(schema);
   }
   if(isArray)
     return [ str ];
@@ -832,6 +845,8 @@ Operation.prototype.execute = function(arg1, arg2, arg3, arg4, parent) {
         headers[param.name] = args[param.name];
       else if (param.in === 'formData')
         formParams[param.name] = args[param.name];
+      else if (param.in === 'body')
+        args.body = args[param.name];
     }
   }
   // handle form params
@@ -849,8 +864,7 @@ Operation.prototype.execute = function(arg1, arg2, arg3, arg4, parent) {
     // todo append?
     args.body = encoded;
   }
-  var scheme = this.schemes[0];
-  var url = scheme + '://' + this.host + this.basePath + requestUrl + querystring;
+  var url = this.scheme + '://' + this.host + this.basePath + requestUrl + querystring;
 
   var obj = {
     url: url,
@@ -1004,7 +1018,7 @@ var Model = function(name, definition) {
   this.name = name;
   this.definition = definition || {};
   this.properties = [];
-  var requiredFields = definition.enum || [];
+  var requiredFields = definition.required || [];
 
   var key;
   var props = definition.properties;
@@ -1065,7 +1079,7 @@ Model.prototype.getMockSignature = function(modelsToIgnore) {
     var prop = this.properties[i];
     var ref = prop['$ref'];
     var model = models[ref];
-    if (model && typeof modelsToIgnore === 'undefined') {
+    if (model && typeof modelsToIgnore[model.name] === 'undefined') {
       returnVal = returnVal + ('<br>' + model.getMockSignature(modelsToIgnore));
     }
   }
@@ -1087,8 +1101,10 @@ var Property = function(name, obj, required) {
       obj = obj.items;
   }
   this.name = name;
+  this.description = obj.description;
   this.obj = obj;
   this.optional = true;
+  this.default = obj.default || null;
   this.example = obj.example || null;
 }
 
@@ -1121,6 +1137,8 @@ Property.prototype.sampleValue = function(isArray, ignoredModels) {
   }
   else if(this.example)
     output = this.example;
+  else if(this.default)
+    output = this.default;
   else if(type === 'date-time')
     output = new Date().toISOString();
   else if(type === 'string')
@@ -1154,6 +1172,8 @@ getStringSignature = function(obj) {
     str += 'integer';
   else if(obj.type === 'integer' && obj.format === 'int64')
     str += 'long';
+  else if(obj.type === 'integer' && typeof obj.format === 'undefined')
+    str += 'long';
   else if(obj.type === 'string' && obj.format === 'date-time')
     str += 'date-time';
   else if(obj.type === 'string' && obj.format === 'date')
@@ -1161,6 +1181,8 @@ getStringSignature = function(obj) {
   else if(obj.type === 'number' && obj.format === 'float')
     str += 'float';
   else if(obj.type === 'number' && obj.format === 'double')
+    str += 'double';
+  else if(obj.type === 'number' && typeof obj.format === 'undefined')
     str += 'double';
   else if(obj.type === 'boolean')
     str += 'boolean';
@@ -1180,12 +1202,17 @@ simpleRef = function(name) {
 
 Property.prototype.toString = function() {
   var str = getStringSignature(this.obj);
-  if(str !== '')
-    str = this.name + ' : ' + str;
+  if(str !== '') {
+    str = '<span class="propName ' + this.required + '">' + this.name + '</span> (<span class="propType">' + str + '</span>';
+    if(!this.required)
+      str += ', <span class="propOptKey">optional</span>';
+    str += ')';
+  }
   else 
-    str = this.name + ' : ' + JSON.stringify(this.obj);
-  if(!this.required)
-    str += ' (optional)';
+    str = this.name + ' (' + JSON.stringify(this.obj) + ')';
+
+  if(typeof this.description !== 'undefined')
+    str += ': ' + this.description;
   return str;
 }
 
@@ -1195,6 +1222,8 @@ typeFromJsonSchema = function(type, format) {
     str = 'integer';
   else if(type === 'integer' && format === 'int64')
     str = 'long';
+  else if(type === 'integer' && typeof format === 'undefined')
+    str = 'long';
   else if(type === 'string' && format === 'date-time')
     str = 'date-time';
   else if(type === 'string' && format === 'date')
@@ -1202,6 +1231,8 @@ typeFromJsonSchema = function(type, format) {
   else if(type === 'number' && format === 'float')
     str = 'float';
   else if(type === 'number' && format === 'double')
+    str = 'double';
+  else if(type === 'number' && typeof format === 'undefined')
     str = 'double';
   else if(type === 'boolean')
     str = 'boolean';

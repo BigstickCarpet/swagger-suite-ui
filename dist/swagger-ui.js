@@ -1,5 +1,5 @@
 // swagger-ui.js
-// version 2.1.0-alpha.2
+// version 2.1.0-alpha.3
 $(function() {
 
 	// Helper function for vertically aligning DOM elements
@@ -1886,7 +1886,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
           o = _ref6[_j];
           if ((o.value != null) && jQuery.trim(o.value).length > 0) {
-            map["body"] = o.value;
+            map[o.name] = o.value;
           }
         }
         _ref7 = form.find("select");
