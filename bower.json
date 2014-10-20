@@ -1,6 +1,6 @@
 {
   "name": "swagger-suite-ui",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "A build of Swagger-UI specifically for Swagger-Suite",
   "keywords": [
     "rest",
