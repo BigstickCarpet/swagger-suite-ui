@@ -679,7 +679,7 @@ Operation.prototype.getType = function (param) {
         return ref;
     }
     else
-      return this.getType(schema);
+      return this.getType(schema) || 'object' ;
   }
   if(isArray)
     return [ str ];
